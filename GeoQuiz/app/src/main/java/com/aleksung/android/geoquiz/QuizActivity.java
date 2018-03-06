@@ -2,43 +2,152 @@ package com.aleksung.android.geoquiz;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class QuizActivity extends AppCompatActivity {
 
+    private static final String TAG = "QuizActivity";
+    private static final String KEY_INDEX = "index";
+
     private Button mTrueButton;
     private Button mFalseButton;
+    private ImageButton mNextButton;
+    private ImageButton mPrevButton;
+    private TextView mQuestionTextView;
+
+    private Question[] mQuestionArray = new Question[] {
+            new Question(R.string.question1, false),
+            new Question(R.string.question2, false),
+            new Question(R.string.question3, true),
+            new Question(R.string.question4, true),
+            new Question(R.string.question5, false),
+            new Question(R.string.question6, true),
+    };
+
+    private int mCurrentIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
+
+        // Restoring saved data
+        if (savedInstanceState != null)
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
 
         // Retrieving resource IDs
         mTrueButton = findViewById(R.id.true_button);
         mFalseButton = findViewById(R.id.false_button);
+        mNextButton = findViewById(R.id.next_button);
+        mPrevButton = findViewById(R.id.prev_button);
+        mQuestionTextView = findViewById(R.id.question_text_view);
 
         // Setting up listeners
         mTrueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast toast = Toast.makeText(QuizActivity.this, R.string.correct_toast,
-                        Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.BOTTOM, 0, 0);
-                toast.show();
+                checkAnswer(true);
             }
         });
         mFalseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast toast = Toast.makeText(QuizActivity.this, R.string.incorrect_toast,
-                        Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.BOTTOM, 0, 0);
-                toast.show();
+                checkAnswer(false);
             }
         });
+        mNextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nextQuestion();
+            }
+        });
+        mPrevButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                prevQuestion();
+            }
+        });
+        mQuestionTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nextQuestion();
+            }
+        });
+
+        updateQuestion();
+    }
+
+    private void prevQuestion() {
+        if (mCurrentIndex == 0)
+            mCurrentIndex = mQuestionArray.length;
+        mCurrentIndex = (--mCurrentIndex) % mQuestionArray.length;
+        updateQuestion();
+    }
+
+    private void nextQuestion() {
+        mCurrentIndex = (++mCurrentIndex) % mQuestionArray.length;
+        updateQuestion();
+    }
+
+    private void updateQuestion() {
+        int question = mQuestionArray[mCurrentIndex].getTextResId();
+        mQuestionTextView.setText(question);
+    }
+
+    private void checkAnswer(boolean input) {
+        Question question = mQuestionArray[mCurrentIndex];
+        int messageID = 0;
+        if (question.isAnswerTrue() == input) {
+            messageID = R.string.correct_toast;
+        } else {
+            messageID = R.string.incorrect_toast;
+        }
+
+        Toast toast = Toast.makeText(QuizActivity.this, messageID, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() called");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState");
+        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
     }
 }

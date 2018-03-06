@@ -1,8 +1,15 @@
 <resources>
     <string name="app_name">GeoQuiz</string>
-    <string name="question_text">android:layout_width and android:layout_height are required only for a few types of widgets</string>
     <string name="true_button">True</string>
     <string name="false_button">False</string>
     <string name="correct_toast">Correct!</string>
     <string name="incorrect_toast">Incorrect!</string>
+    <!-- Questions -->
+    <string name="question1">MongoDB is the web framework in the MEAN stack.</string> <!-- false -->
+    <string name="question2">Node.js is the web server in the MEAN stack.</string> <!-- false -->
+    <string name="question3">Express is the web framework in the MEAN stack.</string> <!-- true -->
+    <string name="question4">AngularJS is the front-end framework in the MEAN stack.</string> <!-- true -->
+    <string name="question5">NodeJS is multithreaded.</string> <!-- false -->
+    <string name="question6">MongoDB uses document databases.</string> <!-- true -->
+
 </resources>
