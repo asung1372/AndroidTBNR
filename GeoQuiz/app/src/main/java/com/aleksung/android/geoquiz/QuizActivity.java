@@ -13,9 +13,13 @@ public class QuizActivity extends AppCompatActivity {
 
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final String KEY_ARRAY_ANSWERED = "array_answered";
+    private static final String KEY_ARRAY_CORRECT = "array_correct";
 
-    private boolean[] mAnsweredCorrect;
     private boolean[] mAnsweredQuestion;
+    private boolean[] mAnsweredCorrect;
+    private QuizBooleanArray mAnsweredQuestionParcel;
+    private QuizBooleanArray mAnsweredCorrectParcel;
     private Button mTrueButton;
     private Button mFalseButton;
     private ImageButton mNextButton;
@@ -39,13 +43,17 @@ public class QuizActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
 
-        // Restoring saved data
-        if (savedInstanceState != null)
+        if (savedInstanceState != null) { // Restoring saved data
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+            mAnsweredQuestionParcel = savedInstanceState.getParcelable(KEY_ARRAY_ANSWERED);
+            mAnsweredCorrectParcel = savedInstanceState.getParcelable(KEY_ARRAY_CORRECT);
 
-        // Initializing arrays
-        mAnsweredCorrect = new boolean[mQuestionArray.length];
-        mAnsweredQuestion = new boolean[mQuestionArray.length];
+            mAnsweredQuestion = mAnsweredQuestionParcel.getData();
+            mAnsweredCorrect = mAnsweredCorrectParcel.getData();
+        } else { // Initializing arrays
+            mAnsweredCorrect = new boolean[mQuestionArray.length];
+            mAnsweredQuestion = new boolean[mQuestionArray.length];
+        }
 
         // Retrieving resource IDs
         mTrueButton = findViewById(R.id.true_button);
@@ -122,19 +130,18 @@ public class QuizActivity extends AppCompatActivity {
             toast.show();
         }
         mAnsweredQuestion[mCurrentIndex] = true;
-        displayFinalScore();
+        if (answeredAll())
+            displayFinalScore();
     }
 
     private void displayFinalScore() {
-        if (checkAnsweredAll()) {
-            double percentageScore = ((double) numberOfCorrectAnswers() / (double) mQuestionArray.length) * 100.00;
-            Toast toast = Toast.makeText(QuizActivity.this,
-                    "Percentage score: " + percentageScore + "%", Toast.LENGTH_SHORT);
-            toast.show();
-        }
+        double percentageScore = ((double) numberOfCorrectAnswers() / (double) mQuestionArray.length) * 100.00;
+        Toast toast = Toast.makeText(QuizActivity.this,
+                "Percentage score: " + percentageScore + "%", Toast.LENGTH_SHORT);
+        toast.show();
     }
 
-    private boolean checkAnsweredAll() {
+    private boolean answeredAll() {
         for (int i = 0; i < mQuestionArray.length; i++) {
             if (!mAnsweredQuestion[i])
                 return false;
@@ -185,6 +192,12 @@ public class QuizActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
+
+        mAnsweredQuestionParcel = new QuizBooleanArray(mAnsweredQuestion);
+        mAnsweredCorrectParcel = new QuizBooleanArray(mAnsweredCorrect);
+
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+        savedInstanceState.putParcelable(KEY_ARRAY_ANSWERED, mAnsweredQuestionParcel);
+        savedInstanceState.putParcelable(KEY_ARRAY_CORRECT, mAnsweredCorrectParcel);
     }
 }
