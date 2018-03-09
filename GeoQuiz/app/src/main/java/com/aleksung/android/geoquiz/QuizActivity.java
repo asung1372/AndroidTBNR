@@ -20,10 +20,6 @@ public class QuizActivity extends AppCompatActivity {
     private boolean[] mAnsweredCorrect;
     private QuizBooleanArray mAnsweredQuestionParcel;
     private QuizBooleanArray mAnsweredCorrectParcel;
-    private Button mTrueButton;
-    private Button mFalseButton;
-    private ImageButton mNextButton;
-    private ImageButton mPrevButton;
     private TextView mQuestionTextView;
 
     private Question[] mQuestionArray = new Question[] {
@@ -39,6 +35,11 @@ public class QuizActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Button trueButton;
+        Button falseButton;
+        ImageButton nextButton;
+        ImageButton prevButton;
+
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
@@ -56,32 +57,32 @@ public class QuizActivity extends AppCompatActivity {
         }
 
         // Retrieving resource IDs
-        mTrueButton = findViewById(R.id.true_button);
-        mFalseButton = findViewById(R.id.false_button);
-        mNextButton = findViewById(R.id.next_button);
-        mPrevButton = findViewById(R.id.prev_button);
+        trueButton = findViewById(R.id.true_button);
+        falseButton = findViewById(R.id.false_button);
+        nextButton = findViewById(R.id.next_button);
+        prevButton = findViewById(R.id.prev_button);
         mQuestionTextView = findViewById(R.id.question_text_view);
 
         // Setting up listeners
-        mTrueButton.setOnClickListener(new View.OnClickListener() {
+        trueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkAnswer(true);
             }
         });
-        mFalseButton.setOnClickListener(new View.OnClickListener() {
+        falseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkAnswer(false);
             }
         });
-        mNextButton.setOnClickListener(new View.OnClickListener() {
+        nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 nextQuestion();
             }
         });
-        mPrevButton.setOnClickListener(new View.OnClickListener() {
+        prevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 prevQuestion();
