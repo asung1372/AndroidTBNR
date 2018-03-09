@@ -3,7 +3,6 @@ package com.aleksung.android.geoquiz;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -15,6 +14,8 @@ public class QuizActivity extends AppCompatActivity {
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
 
+    private boolean[] mAnsweredCorrect;
+    private boolean[] mAnsweredQuestion;
     private Button mTrueButton;
     private Button mFalseButton;
     private ImageButton mNextButton;
@@ -41,6 +42,10 @@ public class QuizActivity extends AppCompatActivity {
         // Restoring saved data
         if (savedInstanceState != null)
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+
+        // Initializing arrays
+        mAnsweredCorrect = new boolean[mQuestionArray.length];
+        mAnsweredQuestion = new boolean[mQuestionArray.length];
 
         // Retrieving resource IDs
         mTrueButton = findViewById(R.id.true_button);
@@ -102,16 +107,48 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void checkAnswer(boolean input) {
-        Question question = mQuestionArray[mCurrentIndex];
-        int messageID = 0;
-        if (question.isAnswerTrue() == input) {
-            messageID = R.string.correct_toast;
-        } else {
-            messageID = R.string.incorrect_toast;
-        }
+        if (!mAnsweredQuestion[mCurrentIndex]) {
+            Question question = mQuestionArray[mCurrentIndex];
+            int messageID;
+            if (question.isAnswerTrue() == input) {
+                messageID = R.string.correct_toast;
+                mAnsweredCorrect[mCurrentIndex] = true;
+            } else {
+                messageID = R.string.incorrect_toast;
+                mAnsweredCorrect[mCurrentIndex] = false;
+            }
 
-        Toast toast = Toast.makeText(QuizActivity.this, messageID, Toast.LENGTH_SHORT);
-        toast.show();
+            Toast toast = Toast.makeText(QuizActivity.this, messageID, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        mAnsweredQuestion[mCurrentIndex] = true;
+        displayFinalScore();
+    }
+
+    private void displayFinalScore() {
+        if (checkAnsweredAll()) {
+            double percentageScore = ((double) numberOfCorrectAnswers() / (double) mQuestionArray.length) * 100.00;
+            Toast toast = Toast.makeText(QuizActivity.this,
+                    "Percentage score: " + percentageScore + "%", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
+    private boolean checkAnsweredAll() {
+        for (int i = 0; i < mQuestionArray.length; i++) {
+            if (!mAnsweredQuestion[i])
+                return false;
+        }
+        return true;
+    }
+
+    private int numberOfCorrectAnswers() {
+        int sumOfCorrectAnswers = 0;
+        for (int i = 0; i < mQuestionArray.length; i++) {
+            if (mAnsweredCorrect[i])
+                sumOfCorrectAnswers++;
+        }
+        return sumOfCorrectAnswers;
     }
 
     @Override
