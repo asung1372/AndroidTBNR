@@ -1,5 +1,7 @@
 package com.aleksung.android.geoquiz;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,14 +13,16 @@ import android.widget.Toast;
 
 public class QuizActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_CHEAT = 0;
     private static final String TAG = "QuizActivity";
-    private static final String KEY_INDEX = "index";
     private static final String KEY_ARRAY_ANSWERED = "array_answered";
     private static final String KEY_ARRAY_CORRECT = "array_correct";
+    private static final String KEY_ARRAY_CHEATED = "cheated";
+    private static final String KEY_INDEX = "index";
 
     private boolean[] mAnsweredQuestion;
     private boolean[] mAnsweredCorrect;
-    private QuizBooleanArray mAnsweredQuestionParcel;
+    private QuizBooleanArray mAnsweredQuestionParcel;;
     private QuizBooleanArray mAnsweredCorrectParcel;
     private TextView mQuestionTextView;
 
@@ -37,6 +41,7 @@ public class QuizActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Button trueButton;
         Button falseButton;
+        Button cheatButton;
         ImageButton nextButton;
         ImageButton prevButton;
 
@@ -59,6 +64,7 @@ public class QuizActivity extends AppCompatActivity {
         // Retrieving resource IDs
         trueButton = findViewById(R.id.true_button);
         falseButton = findViewById(R.id.false_button);
+        cheatButton = findViewById(R.id.cheat_button);
         nextButton = findViewById(R.id.next_button);
         prevButton = findViewById(R.id.prev_button);
         mQuestionTextView = findViewById(R.id.question_text_view);
@@ -74,6 +80,15 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 checkAnswer(false);
+            }
+        });
+        cheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start Cheat Activity
+                boolean answerIsTrue = mQuestionArray[mCurrentIndex].isAnswerTrue();
+                Intent intent = CheatActivity.newIntent(QuizActivity.this, answerIsTrue);
+                startActivityForResult(intent, REQUEST_CODE_CHEAT);
             }
         });
         nextButton.setOnClickListener(new View.OnClickListener() {
@@ -98,6 +113,63 @@ public class QuizActivity extends AppCompatActivity {
         updateQuestion();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            if (data == null) {
+                return;
+            }
+            mCheated = CheatActivity.wasAnswerShown(data);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called from QuizActivity");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called from QuizActivity");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called from QuizActivity");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called from QuizActivity");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() called from QuizActivity");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState from QuizActivity");
+
+        mAnsweredQuestionParcel = new QuizBooleanArray(mAnsweredQuestion);
+        mAnsweredCorrectParcel = new QuizBooleanArray(mAnsweredCorrect);
+
+        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+        savedInstanceState.putParcelable(KEY_ARRAY_ANSWERED, mAnsweredQuestionParcel);
+        savedInstanceState.putParcelable(KEY_ARRAY_CORRECT, mAnsweredCorrectParcel);
+    }
+
     private void prevQuestion() {
         if (mCurrentIndex == 0)
             mCurrentIndex = mQuestionArray.length;
@@ -119,12 +191,17 @@ public class QuizActivity extends AppCompatActivity {
         if (!mAnsweredQuestion[mCurrentIndex]) {
             Question question = mQuestionArray[mCurrentIndex];
             int messageID;
-            if (question.isAnswerTrue() == input) {
-                messageID = R.string.correct_toast;
-                mAnsweredCorrect[mCurrentIndex] = true;
+            if (mCheated) {
+                messageID = R.string.judgement_toast;
+                mAnsweredCorrect[mCurrentIndex] = false; // punish user for cheating
             } else {
-                messageID = R.string.incorrect_toast;
-                mAnsweredCorrect[mCurrentIndex] = false;
+                if (question.isAnswerTrue() == input) {
+                    messageID = R.string.correct_toast;
+                    mAnsweredCorrect[mCurrentIndex] = true;
+                } else {
+                    messageID = R.string.incorrect_toast;
+                    mAnsweredCorrect[mCurrentIndex] = false;
+                }
             }
 
             Toast toast = Toast.makeText(QuizActivity.this, messageID, Toast.LENGTH_SHORT);
@@ -159,46 +236,4 @@ public class QuizActivity extends AppCompatActivity {
         return sumOfCorrectAnswers;
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart() called");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume() called");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause() called");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop() called");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy() called");
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        Log.i(TAG, "onSaveInstanceState");
-
-        mAnsweredQuestionParcel = new QuizBooleanArray(mAnsweredQuestion);
-        mAnsweredCorrectParcel = new QuizBooleanArray(mAnsweredCorrect);
-
-        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
-        savedInstanceState.putParcelable(KEY_ARRAY_ANSWERED, mAnsweredQuestionParcel);
-        savedInstanceState.putParcelable(KEY_ARRAY_CORRECT, mAnsweredCorrectParcel);
-    }
 }
