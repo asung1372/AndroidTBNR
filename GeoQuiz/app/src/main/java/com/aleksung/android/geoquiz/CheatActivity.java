@@ -2,6 +2,7 @@ package com.aleksung.android.geoquiz;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -32,6 +33,7 @@ public class CheatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Button showAnswerButton;
+        TextView apiTextView;
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cheat);
@@ -41,15 +43,20 @@ public class CheatActivity extends AppCompatActivity {
         // Retrieving resource IDs
         showAnswerButton = findViewById(R.id.show_answer_button);
         answerTextView = findViewById(R.id.answer_text_view);
+        apiTextView = findViewById(R.id.api_level_text_view);
 
         showAnswerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                answerTextView.setText("The answer is: " + mAnswerIsTrue);
+                String text = "The answer is: " + mAnswerIsTrue;
+                answerTextView.setText(String.valueOf(text));
                 setAnswerShownResult(true);
                 mAnswerShown = true;
             }
         });
+
+        String text = "API Level " + Build.VERSION.SDK_INT;
+        apiTextView.setText(String.valueOf(text));
     }
 
     @Override

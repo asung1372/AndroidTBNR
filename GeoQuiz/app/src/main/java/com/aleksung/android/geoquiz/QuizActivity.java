@@ -11,16 +11,17 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static junit.framework.Assert.assertTrue;
-
 public class QuizActivity extends AppCompatActivity {
 
+    private static final int MAX_CHEAT_COUNT = 3;
     private static final int REQUEST_CODE_CHEAT = 0;
     private static final String TAG = "QuizActivity";
     private static final String KEY_QUESTION_STATUSES = "question_statuses";
     private static final String KEY_INDEX = "index";
 
+    private Button mCheatButton;
     private QuestionStatusArray mQuestionStatuses;
+    private TextView mCheatCountTextView;
     private TextView mQuestionTextView;
 
     private Question[] mQuestionArray = new Question[] {
@@ -38,7 +39,6 @@ public class QuizActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Button trueButton;
         Button falseButton;
-        Button cheatButton;
         ImageButton nextButton;
         ImageButton prevButton;
 
@@ -56,10 +56,11 @@ public class QuizActivity extends AppCompatActivity {
         // Retrieving resource IDs
         trueButton = findViewById(R.id.true_button);
         falseButton = findViewById(R.id.false_button);
-        cheatButton = findViewById(R.id.cheat_button);
+        mCheatButton = findViewById(R.id.cheat_button);
         nextButton = findViewById(R.id.next_button);
         prevButton = findViewById(R.id.prev_button);
         mQuestionTextView = findViewById(R.id.question_text_view);
+        mCheatCountTextView = findViewById(R.id.cheat_count_text_view);
 
         // Setting up listeners
         trueButton.setOnClickListener(new View.OnClickListener() {
@@ -74,7 +75,7 @@ public class QuizActivity extends AppCompatActivity {
                 checkAnswer(false);
             }
         });
-        cheatButton.setOnClickListener(new View.OnClickListener() {
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Start Cheat Activity
@@ -101,8 +102,8 @@ public class QuizActivity extends AppCompatActivity {
                 nextQuestion();
             }
         });
-
         updateQuestion();
+        updateCheatCount();
     }
 
     @Override
@@ -117,6 +118,7 @@ public class QuizActivity extends AppCompatActivity {
             }
             if (CheatActivity.wasAnswerShown(data) && mQuestionStatuses.unanswered(mCurrentIndex)) {
                 mQuestionStatuses.setCheated(mCurrentIndex);
+                updateCheatCount();
             }
         }
     }
@@ -170,6 +172,26 @@ public class QuizActivity extends AppCompatActivity {
     private void nextQuestion() {
         mCurrentIndex = (++mCurrentIndex) % mQuestionArray.length;
         updateQuestion();
+    }
+
+    private void updateCheatCount() {
+        // Counting cheats
+        int count = 0;
+        for (int i = 0; i < mQuestionArray.length; i++) {
+            if (mQuestionStatuses.cheated(i))
+                count++;
+            if (count >= MAX_CHEAT_COUNT)
+                break;
+        }
+        int cheatsLeft = (MAX_CHEAT_COUNT - count);
+
+        // Setting cheat TextView
+        String text = "Number of cheats left: " + cheatsLeft;
+        mCheatCountTextView.setText(text);
+
+        // Setting cheat button
+        if (cheatsLeft <= 0)
+            mCheatButton.setEnabled(false);
     }
 
     private void updateQuestion() {

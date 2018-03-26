@@ -4,8 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class QuestionStatusArray implements Parcelable {
-    private static final String TAG = "QuesitonStatusArray";
-
     private enum QuestionStatus {
         UNANSWERED, ANSWERED_CORRECTLY, ANSWERED_INCORRECTLY, CHEATED
     }
@@ -50,11 +48,7 @@ public class QuestionStatusArray implements Parcelable {
 
     boolean answeredCorrectly(int index) { return mData[index] == QuestionStatus.ANSWERED_CORRECTLY; }
 
-    boolean answeredIncorrectly(int index) { return mData[index] == QuestionStatus.ANSWERED_INCORRECTLY; }
-
     boolean cheated(int index) { return mData[index] == QuestionStatus.CHEATED; }
-
-    void setUnanswered(int index) { mData[index] = QuestionStatus.UNANSWERED; }
 
     void setAnsweredCorrectly(int index) { mData[index] = QuestionStatus.ANSWERED_CORRECTLY; }
 
