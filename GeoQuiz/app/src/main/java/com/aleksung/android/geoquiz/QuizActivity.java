@@ -15,15 +15,18 @@ public class QuizActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_CHEAT = 0;
     private static final String TAG = "QuizActivity";
-    private static final String KEY_ARRAY_ANSWERED = "array_answered";
-    private static final String KEY_ARRAY_CORRECT = "array_correct";
-    private static final String KEY_ARRAY_CHEATED = "cheated";
+//    private static final String KEY_ARRAY_ANSWERED = "array_answered";
+//    private static final String KEY_ARRAY_CORRECT = "array_correct";
+//    private static final String KEY_ARRAY_CHEATED = "cheated";
     private static final String KEY_INDEX = "index";
 
-    private boolean[] mAnsweredQuestion;
-    private boolean[] mAnsweredCorrect;
-    private QuizBooleanArray mAnsweredQuestionParcel;;
-    private QuizBooleanArray mAnsweredCorrectParcel;
+    private enum QuestionStatus {
+        UNANSWERED, ANSWERED_CORRECTLY, ANSWERED_INCORRECTLY, CHEATED
+    }
+
+    private QuestionStatus[] mQuestionStatuses;
+//     private QuizBooleanArray mAnsweredQuestionParcel;;
+//     private QuizBooleanArray mAnsweredCorrectParcel;
     private TextView mQuestionTextView;
 
     private Question[] mQuestionArray = new Question[] {
@@ -54,11 +57,13 @@ public class QuizActivity extends AppCompatActivity {
             mAnsweredQuestionParcel = savedInstanceState.getParcelable(KEY_ARRAY_ANSWERED);
             mAnsweredCorrectParcel = savedInstanceState.getParcelable(KEY_ARRAY_CORRECT);
 
+            // TODO: Need to make question status class
             mAnsweredQuestion = mAnsweredQuestionParcel.getData();
             mAnsweredCorrect = mAnsweredCorrectParcel.getData();
         } else { // Initializing arrays
-            mAnsweredCorrect = new boolean[mQuestionArray.length];
-            mAnsweredQuestion = new boolean[mQuestionArray.length];
+//            mAnsweredCorrect = new boolean[mQuestionArray.length];
+//            mAnsweredQuestion = new boolean[mQuestionArray.length];
+            mQuestionStatuses = new QuestionStatus[mQuestionArray.length];
         }
 
         // Retrieving resource IDs
@@ -123,7 +128,10 @@ public class QuizActivity extends AppCompatActivity {
             if (data == null) {
                 return;
             }
-            mCheated = CheatActivity.wasAnswerShown(data);
+            // mCheated = CheatActivity.wasAnswerShown(data);
+            if (CheatActivity.wasAnswerShown(data)) {
+                mQuestionStatuses[mCurrentIndex] = QuestionStatus.CHEATED;
+            }
         }
     }
 
@@ -162,6 +170,7 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState from QuizActivity");
 
+        // TODO: Need to make question status class
         mAnsweredQuestionParcel = new QuizBooleanArray(mAnsweredQuestion);
         mAnsweredCorrectParcel = new QuizBooleanArray(mAnsweredCorrect);
 
@@ -188,32 +197,30 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void checkAnswer(boolean input) {
-        if (!mAnsweredQuestion[mCurrentIndex]) {
+        int messageID;
+        if (mQuestionStatuses[mCurrentIndex] == QuestionStatus.UNANSWERED) {
             Question question = mQuestionArray[mCurrentIndex];
-            int messageID;
-            if (mCheated) {
-                messageID = R.string.judgement_toast;
-                mAnsweredCorrect[mCurrentIndex] = false; // punish user for cheating
+            if (question.isAnswerTrue() == input) {
+                messageID = R.string.correct_toast;
+                mQuestionStatuses[mCurrentIndex] = QuestionStatus.ANSWERED_CORRECTLY;
             } else {
-                if (question.isAnswerTrue() == input) {
-                    messageID = R.string.correct_toast;
-                    mAnsweredCorrect[mCurrentIndex] = true;
-                } else {
-                    messageID = R.string.incorrect_toast;
-                    mAnsweredCorrect[mCurrentIndex] = false;
-                }
+                messageID = R.string.incorrect_toast;
+                mQuestionStatuses[mCurrentIndex] = QuestionStatus.ANSWERED_INCORRECTLY;
             }
-
-            Toast toast = Toast.makeText(QuizActivity.this, messageID, Toast.LENGTH_SHORT);
-            toast.show();
+        } else { // mQuestionStatuses[mCurrentIndex] == QuestionStatus.CHEATED
+            messageID = R.string.judgement_toast;
         }
-        mAnsweredQuestion[mCurrentIndex] = true;
+        Toast toast = Toast.makeText(QuizActivity.this, messageID, Toast.LENGTH_SHORT);
+        toast.show();
+
+        // Checking if all questions answered
         if (answeredAll())
             displayFinalScore();
     }
 
     private void displayFinalScore() {
-        double percentageScore = ((double) numberOfCorrectAnswers() / (double) mQuestionArray.length) * 100.00;
+        double percentageScore = ((double) numberOfCorrectAnswers() /
+                (double) mQuestionArray.length) * 100.00;
         Toast toast = Toast.makeText(QuizActivity.this,
                 "Percentage score: " + percentageScore + "%", Toast.LENGTH_SHORT);
         toast.show();
@@ -221,7 +228,7 @@ public class QuizActivity extends AppCompatActivity {
 
     private boolean answeredAll() {
         for (int i = 0; i < mQuestionArray.length; i++) {
-            if (!mAnsweredQuestion[i])
+            if (mQuestionStatuses[i] == QuestionStatus.UNANSWERED)
                 return false;
         }
         return true;
@@ -230,7 +237,7 @@ public class QuizActivity extends AppCompatActivity {
     private int numberOfCorrectAnswers() {
         int sumOfCorrectAnswers = 0;
         for (int i = 0; i < mQuestionArray.length; i++) {
-            if (mAnsweredCorrect[i])
+            if (mQuestionStatuses[i] == QuestionStatus.ANSWERED_CORRECTLY)
                 sumOfCorrectAnswers++;
         }
         return sumOfCorrectAnswers;
